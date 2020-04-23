@@ -1,5 +1,5 @@
 import { Base } from './base';
-import { AxiosResponse } from 'axios';
+import { AxiosError } from 'axios';
 /**
  * session data format
  */
@@ -91,12 +91,18 @@ export interface AppStoreSessionToken {
 }
 export declare class Client extends Base {
     private signinUrl;
+    private authRequestUrl;
     private wdigetKeyUrl;
+    private securityCodeUrl;
     apiEndPoint: string;
+    trustUrl: string;
     private authServiceWidgetKey?;
     private sessionData?;
     private apps?;
     private userDetail?;
+    private headers;
+    private password;
+    constructor(appleId: string, password: string);
     private widgetKey;
     /**
      * signin with Apple ID and Password
@@ -104,7 +110,8 @@ export declare class Client extends Base {
      * @param appleId Apple ID(email format)
      * @param password Apple ID Password (no two-step verification)
      */
-    signin(appleId: string, password: string): Promise<AxiosResponse<any>>;
+    signin(): Promise<string>;
+    authRequest(): Promise<void>;
     /**
      * get session data
      */
@@ -120,4 +127,7 @@ export declare class Client extends Base {
      * list apps in current provider
      */
     listApps(): Promise<[App] | undefined>;
+    updateRequestHeaders(resp: AxiosError): void;
+    securityCodeRequest(code: string): Promise<any>;
+    trust(): Promise<any>;
 }

@@ -2,54 +2,79 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const axios_1 = require("axios");
 const tough_cookie_1 = require("tough-cookie");
-axios_1.default.interceptors.request.use(config => {
-    if (config.jar) {
-        if (!config.headers) {
-            config.headers = {};
-        }
-        ;
-        config.headers['cookie'] = config.jar.getCookieStringSync(config.url);
-    }
-    return config;
-}, error => Promise.reject(error));
-axios_1.default.interceptors.response.use(response => {
-    const config = response.config;
-    const cookies = response.headers['set-cookie'];
-    if (cookies) {
-        cookies.forEach(cookie => {
-            config.jar.setCookieSync(cookie, response.config.url, { ignoreError: true });
-        });
-    }
-    return response;
-}, error => Promise.reject(error));
+const fs = require("fs");
+const path = require("path");
 class Base {
-    constructor() {
+    constructor(appleId) {
+        this.instance = axios_1.default.create({
+            headers: {
+                'Connection': 'keep-alive',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-Apple-Domain-Id': '1',
+                'Sec-Fetch-Dest': 'empty',
+                'Sec-Fetch-Mode': 'cors',
+                'Sec-Fetch-Site': 'same-origin'
+            },
+            withCredentials: true
+        });
+        this.instance.interceptors.request.use(config => {
+            try {
+                let cookies = fs.readFileSync(path.resolve(process.cwd(), `${appleId}_cookie.txt`)).toString();
+                if (cookies) {
+                    config.jar = tough_cookie_1.CookieJar.fromJSON(JSON.parse(cookies));
+                }
+            }
+            catch (error) {
+            }
+            if (config.jar) {
+                if (!config.headers) {
+                    config.headers = {};
+                }
+                ;
+                config.headers['cookie'] = config.jar.getCookieStringSync(config.url);
+            }
+            return config;
+        }, error => Promise.reject(error));
+        this.instance.interceptors.response.use(response => {
+            const config = response.config;
+            const cookies = response.headers['set-cookie'];
+            if (cookies) {
+                cookies.forEach(cookie => {
+                    config.jar.setCookieSync(cookie, response.config.url, { ignoreError: true });
+                });
+                // 序列化
+                fs.writeFileSync(path.resolve(process.cwd(), `${appleId}_cookie.txt`), JSON.stringify(config.jar.toJSON()));
+            }
+            return response;
+        }, error => Promise.reject(error));
+        this.appleId = appleId;
         this.cookieJar = new tough_cookie_1.CookieJar();
     }
     // http methods
     get(url, headers) {
-        return axios_1.default.get(url, {
+        return this.instance.get(url, {
             jar: this.cookieJar,
             withCredentials: true,
             headers
         });
     }
     post(url, data, headers) {
-        return axios_1.default.post(url, data, {
+        return this.instance.post(url, data, {
             jar: this.cookieJar,
             withCredentials: true,
             headers
         });
     }
     delete(url, headers) {
-        return axios_1.default.delete(url, {
+        return this.instance.delete(url, {
             jar: this.cookieJar,
             withCredentials: true,
             headers
         });
     }
     patch(url, data, headers) {
-        return axios_1.default.patch(url, data, {
+        return this.instance.patch(url, data, {
             jar: this.cookieJar,
             withCredentials: true,
             headers

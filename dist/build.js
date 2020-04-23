@@ -1,19 +1,19 @@
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const base_1 = require("./base");
-class Build extends base_1.Base {
-    constructor(buildId) {
-        super();
+class Build {
+    constructor(client, buildId) {
         this.apiEndPoint = 'https://appstoreconnect.apple.com';
         this.buildId = buildId;
+        this.client = client;
     }
     /**
      * beta build localization describes whatsNew in this build
@@ -21,7 +21,7 @@ class Build extends base_1.Base {
      */
     getBetaBuildLocalizations(limit = 28) {
         return __awaiter(this, void 0, void 0, function* () {
-            const response = yield this.get(`${this.apiEndPoint}/iris/v1/betaBuildLocalizations?filter%5Bbuild%5D=${this.buildId}&limit=${limit}`);
+            const response = yield this.client.get(`${this.apiEndPoint}/iris/v1/betaBuildLocalizations?filter%5Bbuild%5D=${this.buildId}&limit=${limit}`);
             return response.data.data;
         });
     }
@@ -39,7 +39,7 @@ class Build extends base_1.Base {
                     whatsNew,
                 }
             };
-            yield this.patch(`${this.apiEndPoint}/iris/v1/betaBuildLocalizations/${localizationId}`, { data });
+            yield this.client.patch(`${this.apiEndPoint}/iris/v1/betaBuildLocalizations/${localizationId}`, { data });
         });
     }
     /**
@@ -50,7 +50,7 @@ class Build extends base_1.Base {
      */
     getBuildBetaDetails() {
         return __awaiter(this, void 0, void 0, function* () {
-            const response = yield this.get(`${this.apiEndPoint}/iris/v1/buildBetaDetails?filter%5Bbuild%5D=${this.buildId}&limit=28`);
+            const response = yield this.client.get(`${this.apiEndPoint}/iris/v1/buildBetaDetails?filter%5Bbuild%5D=${this.buildId}&limit=28`);
             return response.data.data;
         });
     }
@@ -68,7 +68,7 @@ class Build extends base_1.Base {
                     autoNotifyEnabled
                 }
             };
-            yield this.patch(`${this.apiEndPoint}/iris/v1/buildBetaDetails/${betaBuildDetailId}`, { data });
+            yield this.client.patch(`${this.apiEndPoint}/iris/v1/buildBetaDetails/${betaBuildDetailId}`, { data });
         });
     }
     /**
@@ -80,7 +80,7 @@ class Build extends base_1.Base {
     submitForBetaReview() {
         return __awaiter(this, void 0, void 0, function* () {
             const data = { "data": { "type": "betaAppReviewSubmissions", "relationships": { "build": { "data": { "type": "builds", "id": this.buildId } } } } };
-            yield this.post(`${this.apiEndPoint}/iris/v1/betaAppReviewSubmissions`, data);
+            yield this.client.post(`${this.apiEndPoint}/iris/v1/betaAppReviewSubmissions`, data);
         });
     }
 }

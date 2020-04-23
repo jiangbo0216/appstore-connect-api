@@ -1,27 +1,18 @@
 import { Client } from './client';
-import { Base, CommonResponse, IrisCommonDataFormat } from './base';
+import { CommonResponse, IrisCommonDataFormat } from './base';
 import { Build } from './build';
 
-export class Testflight extends Base {
-    private constructor() {
-        super();
-    }
+export class Testflight {
 
-    client?: Client;
-    appId?: string;
+    client: Client;
+    appId: string;
 
     apiEndPoint = 'https://appstoreconnect.apple.com';
-    /**
-     * initialize Testflight from Client
-     * @param client client has signined
-     */
-    static fromClient(client: Client, appId: string) {
-        const flight = new Testflight();
-        flight.cookieJar = client.cookieJar;
-        flight.client = client;
-        flight.appId = appId;
-        flight.apiEndPoint = client.apiEndPoint;
-        return flight;
+
+
+    constructor(client: Client, appId: string) {
+        this.client = client
+        this.appId = appId
     }
     /**
      * get prerelease versions;
@@ -30,12 +21,12 @@ export class Testflight extends Base {
      * @param platform default platform is IOS
      */
     async getPreReleaseVersions(limit = 10, platform = 'IOS') {
-        const response = await this.get(`${this.apiEndPoint}/iris/v1/preReleaseVersions?filter%5Bapp%5D=${this.appId!}&filter%5Bbuilds.expired%5D=false&filter%5Bbuilds.processingState%5D=PROCESSING,VALID&filter%5Bplatform%5D=${platform}&limit=${limit}`);
+        const response = await this.client.get(`${this.apiEndPoint}/iris/v1/preReleaseVersions?filter%5Bapp%5D=${this.appId!}&filter%5Bbuilds.expired%5D=false&filter%5Bbuilds.processingState%5D=PROCESSING,VALID&filter%5Bplatform%5D=${platform}&limit=${limit}`);
         return (response.data as CommonResponse<[IrisCommonDataFormat<{ version: string, platform: string }>]>).data;
     }
 
     async getPreReleaseBuilds(preReleaseVersionId: string, limit = 10) {
-        const response = await this.get(`${this.apiEndPoint}/iris/v1/builds?filter%5Bexpired%5D=false&filter%5BpreReleaseVersion%5D=${preReleaseVersionId}&filter%5BprocessingState%5D=PROCESSING,VALID&include=buildBetaDetail,betaBuildMetrics&limit=${limit}&sort=-version`);
+        const response = await this.client.get(`${this.apiEndPoint}/iris/v1/builds?filter%5Bexpired%5D=false&filter%5BpreReleaseVersion%5D=${preReleaseVersionId}&filter%5BprocessingState%5D=PROCESSING,VALID&include=buildBetaDetail,betaBuildMetrics&limit=${limit}&sort=-version`);
         return (response.data as CommonResponse<[IrisCommonDataFormat<BuildInfo>]>);
     }
 
@@ -43,27 +34,37 @@ export class Testflight extends Base {
      * get beta review detail
      */
     async getBetaReviewDetails() {
-        const response = await this.get(`${this.apiEndPoint}/iris/v1/betaAppReviewDetails?filter%5Bapp%5D=${this.appId!}&limit=1`);
+        const response = await this.client.get(`${this.apiEndPoint}/iris/v1/betaAppReviewDetails?filter%5Bapp%5D=${this.appId!}&limit=1`);
         return (response.data as CommonResponse<[IrisCommonDataFormat<BetaReviewDetail>]>).data;
     }
 
     async getBetaLicenceAgreements() {
-        const response = await this.get(`${this.apiEndPoint}/iris/v1/betaLicenseAgreements?filter%5Bapp%5D=${this.appId!}&limit=1`);
+        const response = await this.client.get(`${this.apiEndPoint}/iris/v1/betaLicenseAgreements?filter%5Bapp%5D=${this.appId!}&limit=1`);
         return (response.data as CommonResponse<[IrisCommonDataFormat<{ agreementText: string | null }>]>).data;
     }
 
     async getBetaAppLocalizations() {
-        const response = await this.get(`${this.apiEndPoint}/iris/v1/betaAppLocalizations?filter%5Bapp%5D=${this.appId!}&limit=28`);
+        const response = await this.client.get(`${this.apiEndPoint}/iris/v1/betaAppLocalizations?filter%5Bapp%5D=${this.appId!}&limit=28`);
         return (response.data as CommonResponse<[IrisCommonDataFormat<BetaAppLocalization>]>).data;
     }
 
     async getBetaGroups(isInternalGroup: boolean, limit = 15) {
-        const response = await this.get(`${this.apiEndPoint}/iris/v1/betaGroups?filter%5Bapp%5D=${this.appId!}&filter%5BisInternalGroup%5D=${isInternalGroup}&limit=${limit}&sort=name`)
+        const response = await this.client.get(`${this.apiEndPoint}/iris/v1/betaGroups?filter%5Bapp%5D=${this.appId!}&filter%5BisInternalGroup%5D=${isInternalGroup}&limit=${limit}&sort=name`)
+        return (response.data as CommonResponse<[IrisCommonDataFormat<BetaGroup>]>);
+    }
+    
+    async getCustomBetaGroup(data: {[index: string]: string}) {
+        const query = Object.keys(data).reduce((preV, curV) => {
+            return `${preV}${curV}=${data[curV]}&`　
+        }, '')
+        const response = await this.client.get(`${this.apiEndPoint}/iris/v1/betaGroups?${query.slice(0, -1)}`)
         return (response.data as CommonResponse<[IrisCommonDataFormat<BetaGroup>]>);
     }
 
+
+
     async getBetaGroupBuild(groupId: string, limit = 20) {
-        const response = await this.get(`${this.apiEndPoint}/iris/v1/builds?filter%5BbetaGroups%5D=${groupId}&filter%5Bexpired%5D=false&filter%5BprocessingState%5D=VALID&include=preReleaseVersion,buildBetaDetail,betaBuildMetrics&limit=${limit}&sort=-version`);
+        const response = await this.client.get(`${this.apiEndPoint}/iris/v1/builds?filter%5BbetaGroups%5D=${groupId}&filter%5Bexpired%5D=false&filter%5BprocessingState%5D=VALID&include=preReleaseVersion,buildBetaDetail,betaBuildMetrics&limit=${limit}&sort=-version`);
         return (response.data as CommonResponse<[IrisCommonDataFormat<Build>]>);
     }
 
@@ -73,7 +74,7 @@ export class Testflight extends Base {
      * @param buildIds array of build ids to add into beta group
      */
     async addBuildsToBetaGroup(groupId: string, buildIds: [string]) {
-        await this.post(`${this.apiEndPoint}/iris/v1/betaGroups/${groupId}/relationships/builds`, {
+        await this.client.post(`${this.apiEndPoint}/iris/v1/betaGroups/${groupId}/relationships/builds`, {
             data: buildIds.map(buildId => { return { type: "builds", id: buildId } })
         })
     }
@@ -86,7 +87,7 @@ export class Testflight extends Base {
      * @param publicLinkLimitEnabled 
      */
     async switchBetaGroupPublicLinkState(betaGroupId: string, publicLinkEnabled: boolean, publicLinkLimit: number, publicLinkLimitEnabled: boolean) {
-        const response = await this.patch(`${this.apiEndPoint}/iris/v1/betaGroups/${betaGroupId}`, {
+        const response = await this.client.patch(`${this.apiEndPoint}/iris/v1/betaGroups/${betaGroupId}`, {
             data: {
                 type: "betaGroups",
                 id: betaGroupId,
@@ -97,7 +98,7 @@ export class Testflight extends Base {
     }
 
     async updateBetaApplocalizations(localizationId: string, data: BetaAppLocalization) {
-        await this.patch(`${this.apiEndPoint}/iris/v1/betaAppLocalizations/${localizationId}`, {
+        await this.client.patch(`${this.apiEndPoint}/iris/v1/betaAppLocalizations/${localizationId}`, {
             data,
             type: "betaAppLocalizations",
             id: localizationId
@@ -105,7 +106,7 @@ export class Testflight extends Base {
     }
 
     async updateBetaLicenceAgreement(agreementId: string, agreementText: string) {
-        await this.patch(`${this.apiEndPoint}/iris/v1/betaLicenseAgreements/${agreementId}`, {
+        await this.client.patch(`${this.apiEndPoint}/iris/v1/betaLicenseAgreements/${agreementId}`, {
             data: { agreementText },
             type: "betaLicenseAgreements",
             id: agreementId
@@ -118,7 +119,7 @@ export class Testflight extends Base {
             id: this.appId!,
             attributes: detail
         }
-        await this.patch(`${this.apiEndPoint}/iris/v1/betaAppReviewDetails/${this.appId!}`, { data });
+        await this.client.patch(`${this.apiEndPoint}/iris/v1/betaAppReviewDetails/${this.appId!}`, { data });
     }
 
     async createBetaGroup(name: string) {
@@ -134,14 +135,14 @@ export class Testflight extends Base {
             },
             type: 'betaGroups'
         };
-        const res = await this.post(`${this.apiEndPoint}/iris/v1/betaGroups`, { data });
+        const res = await this.client.post(`${this.apiEndPoint}/iris/v1/betaGroups`, { data });
         return res.data as CommonResponse<IrisCommonDataFormat<BetaGroup>>;
     }
 
     async deleteBetaGroup(groupId: string, deleteTesters = true) {
         const provider = await this.client!.currentProvider();
         const deleteTestersParam = deleteTesters ? '?deleteTesters=true' : '';
-        await this.delete(`https://appstoreconnect.apple.com/testflight/v2/providers/${provider.providerId}/apps/${this.appId!}/groups/${groupId}${deleteTestersParam}`);
+        await this.client.delete(`https://appstoreconnect.apple.com/testflight/v2/providers/${provider.providerId}/apps/${this.appId!}/groups/${groupId}${deleteTestersParam}`);
     }
 
     /**
@@ -149,11 +150,14 @@ export class Testflight extends Base {
      * @param buildId 
      */
     getBuild(buildId: string) {
-        const build = new Build(buildId);
-        build.cookieJar = this.cookieJar;
+        const build = new Build(this.client!, buildId);
         return build;
     }
 
+    async getBetaTester () {
+        const res = await this.client.get(`${this.apiEndPoint}/iris/v1/betaTesters?filter[apps]=${this.appId}&filter[inviteType]=PUBLIC_LINK&limit=0`)
+        return res.data as CommonResponse<[] & {length: 0}>
+    }
 }
 
 export interface BetaReviewDetail {

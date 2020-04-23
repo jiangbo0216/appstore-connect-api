@@ -1,13 +1,15 @@
 import { Base, CommonResponse, IrisCommonDataFormat } from "./base";
 import { BuildBetaDetails } from "./testflight";
+import { Client } from "./client";
 
-export class Build extends Base {
+export class Build {
     apiEndPoint = 'https://appstoreconnect.apple.com';
     buildId: string;
+    client: Client;
 
-    constructor(buildId: string) {
-        super();
-        this.buildId = buildId;
+    constructor(client: Client, buildId: string) {
+        this.buildId = buildId     
+        this.client = client
     }
 
     /**
@@ -15,7 +17,7 @@ export class Build extends Base {
      * @param limit default is 28
      */
     async getBetaBuildLocalizations(limit = 28) {
-        const response = await this.get(`${this.apiEndPoint}/iris/v1/betaBuildLocalizations?filter%5Bbuild%5D=${this.buildId}&limit=${limit}`);
+        const response = await this.client.get(`${this.apiEndPoint}/iris/v1/betaBuildLocalizations?filter%5Bbuild%5D=${this.buildId}&limit=${limit}`);
         return (response.data as CommonResponse<[IrisCommonDataFormat<BetaBuildLocalizations>]>).data;
     }
 
@@ -32,7 +34,7 @@ export class Build extends Base {
                 whatsNew,
             }
         }
-        await this.patch(`${this.apiEndPoint}/iris/v1/betaBuildLocalizations/${localizationId}`, { data });
+        await this.client.patch(`${this.apiEndPoint}/iris/v1/betaBuildLocalizations/${localizationId}`, { data });
     }
 
     /**
@@ -42,7 +44,7 @@ export class Build extends Base {
      * externalBuildState
      */
     async getBuildBetaDetails() {
-        const response = await this.get(`${this.apiEndPoint}/iris/v1/buildBetaDetails?filter%5Bbuild%5D=${this.buildId}&limit=28`);
+        const response = await this.client.get(`${this.apiEndPoint}/iris/v1/buildBetaDetails?filter%5Bbuild%5D=${this.buildId}&limit=28`);
         return (response.data as CommonResponse<[IrisCommonDataFormat<BuildBetaDetails>]>).data;
     }
 
@@ -59,7 +61,7 @@ export class Build extends Base {
                 autoNotifyEnabled
             }
         }
-        await this.patch(`${this.apiEndPoint}/iris/v1/buildBetaDetails/${betaBuildDetailId}`, { data });
+        await this.client.patch(`${this.apiEndPoint}/iris/v1/buildBetaDetails/${betaBuildDetailId}`, { data });
     }
 
     /**
@@ -70,7 +72,7 @@ export class Build extends Base {
      */
     async submitForBetaReview() {
         const data = { "data": { "type": "betaAppReviewSubmissions", "relationships": { "build": { "data": { "type": "builds", "id": this.buildId } } } } };
-        await this.post(`${this.apiEndPoint}/iris/v1/betaAppReviewSubmissions`, data);
+        await this.client.post(`${this.apiEndPoint}/iris/v1/betaAppReviewSubmissions`, data);
     }
 
 }

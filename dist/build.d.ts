@@ -1,9 +1,11 @@
-import { Base, IrisCommonDataFormat } from "./base";
+import { IrisCommonDataFormat } from "./base";
 import { BuildBetaDetails } from "./testflight";
-export declare class Build extends Base {
+import { Client } from "./client";
+export declare class Build {
     apiEndPoint: string;
     buildId: string;
-    constructor(buildId: string);
+    client: Client;
+    constructor(client: Client, buildId: string);
     /**
      * beta build localization describes whatsNew in this build
      * @param limit default is 28

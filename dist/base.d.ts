@@ -1,3 +1,4 @@
+import { AxiosResponse, AxiosInstance } from 'axios';
 import { CookieJar } from 'tough-cookie';
 declare module 'axios' {
     interface AxiosRequestConfig {
@@ -6,11 +7,13 @@ declare module 'axios' {
 }
 export declare class Base {
     cookieJar: CookieJar;
-    constructor();
-    get(url: string, headers?: any): import("axios").AxiosPromise<any>;
-    post(url: string, data?: any, headers?: any): import("axios").AxiosPromise<any>;
-    delete(url: string, headers?: any): import("axios").AxiosPromise<any>;
-    patch(url: string, data?: any, headers?: any): import("axios").AxiosPromise<any>;
+    appleId: string;
+    instance: AxiosInstance;
+    constructor(appleId: string);
+    get(url: string, headers?: any): Promise<AxiosResponse<any>>;
+    post(url: string, data?: any, headers?: any): Promise<AxiosResponse<any>>;
+    delete(url: string, headers?: any): Promise<AxiosResponse<any>>;
+    patch(url: string, data?: any, headers?: any): Promise<AxiosResponse<any>>;
 }
 export interface CommonResponse<T> {
     data?: T;
