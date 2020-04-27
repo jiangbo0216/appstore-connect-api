@@ -29,7 +29,8 @@ export class Base {
                     'Sec-Fetch-Mode': 'cors',
                     'Sec-Fetch-Site': 'same-origin'
                 },
-                withCredentials: true
+                withCredentials: true,
+                timeout: 15000
             }
         );
         this.instance.interceptors.request.use(config => {
