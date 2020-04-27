@@ -158,6 +158,14 @@ export class Testflight {
         const res = await this.client.get(`${this.apiEndPoint}/iris/v1/betaTesters?filter[apps]=${this.appId}&filter[inviteType]=PUBLIC_LINK&limit=0`)
         return res.data as CommonResponse<[] & {length: 0}>
     }
+
+    async getBetaGroupTester (groupId: string, data: {[index: string]: string}) {
+        const query = Object.keys(data).reduce((preV, curV) => {
+            return `${preV}${curV}=${data[curV]}&`　
+        }, '')
+        const res = await this.client.get(`${this.apiEndPoint}/iris/v1/betaGroups/${groupId}/betaTesters?${query.slice(0, -1)}`)
+        return res.data as CommonResponse<[] & {length: 0}>
+    }
 }
 
 export interface BetaReviewDetail {

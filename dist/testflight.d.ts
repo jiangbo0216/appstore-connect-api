@@ -57,6 +57,11 @@ export declare class Testflight {
     getBetaTester(): Promise<CommonResponse<[] & {
         length: 0;
     }>>;
+    getBetaGroupTester(groupId: string, data: {
+        [index: string]: string;
+    }): Promise<CommonResponse<[] & {
+        length: 0;
+    }>>;
 }
 export interface BetaReviewDetail {
     contactEmail: string | null;

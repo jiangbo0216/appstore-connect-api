@@ -174,6 +174,15 @@ class Testflight {
             return res.data;
         });
     }
+    getBetaGroupTester(groupId, data) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const query = Object.keys(data).reduce((preV, curV) => {
+                return `${preV}${curV}=${data[curV]}&`;
+            }, '');
+            const res = yield this.client.get(`${this.apiEndPoint}/iris/v1/betaGroups/${groupId}/betaTesters?${query.slice(0, -1)}`);
+            return res.data;
+        });
+    }
 }
 exports.Testflight = Testflight;
 //# sourceMappingURL=testflight.js.map
