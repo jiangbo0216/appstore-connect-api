@@ -7,9 +7,8 @@ declare module 'axios' {
 }
 export declare class Base {
     cookieJar: CookieJar;
-    appleId: string;
     instance: AxiosInstance;
-    constructor(appleId: string);
+    constructor(instance: AxiosInstance);
     get(url: string, headers?: any): Promise<AxiosResponse<any>>;
     post(url: string, data?: any, headers?: any): Promise<AxiosResponse<any>>;
     delete(url: string, headers?: any): Promise<AxiosResponse<any>>;

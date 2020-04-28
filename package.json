@@ -14,7 +14,7 @@
   "author": "stephenwzl<stephenwzlwork@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.19.2",
+    "axios": "0.19.2",
     "tough-cookie": "^4.0.0"
   },
   "devDependencies": {

@@ -1,5 +1,5 @@
 import { Base } from './base';
-import { AxiosError } from 'axios';
+import { AxiosError, AxiosInstance } from 'axios';
 /**
  * session data format
  */
@@ -102,7 +102,8 @@ export declare class Client extends Base {
     private userDetail?;
     private headers;
     private password;
-    constructor(appleId: string, password: string);
+    private appleId;
+    constructor(appleId: string, password: string, axiosInstance?: AxiosInstance);
     private widgetKey;
     /**
      * signin with Apple ID and Password

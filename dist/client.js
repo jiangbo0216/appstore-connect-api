@@ -10,9 +10,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const base_1 = require("./base");
+const axios_1 = require("axios");
 class Client extends base_1.Base {
-    constructor(appleId, password) {
-        super(appleId);
+    constructor(appleId, password, axiosInstance = axios_1.default.create()) {
+        super(axiosInstance);
         this.signinUrl = 'https://idmsa.apple.com/appleauth/auth/signin';
         this.authRequestUrl = 'https://idmsa.apple.com/appleauth/auth';
         this.wdigetKeyUrl = 'https://appstoreconnect.apple.com/olympus/v1/app/config?hostname=itunesconnect.apple.com';
@@ -22,6 +23,7 @@ class Client extends base_1.Base {
         this.trustUrl = 'https://idmsa.apple.com/appleauth/auth/2sv/trust';
         this.headers = {};
         this.password = password;
+        this.appleId = appleId;
     }
     widgetKey() {
         return __awaiter(this, void 0, void 0, function* () {

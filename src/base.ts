@@ -14,34 +14,11 @@ declare module 'axios' {
 export class Base {
 
     cookieJar: CookieJar;
-    appleId: string
     instance: AxiosInstance
 
-    constructor(appleId: string) {
-        this.instance = axios.create(
-            {
-                headers: {
-                    'Connection': 'keep-alive',
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-Apple-Domain-Id': '1',
-                    'Sec-Fetch-Dest': 'empty',
-                    'Sec-Fetch-Mode': 'cors',
-                    'Sec-Fetch-Site': 'same-origin'
-                },
-                withCredentials: true,
-                timeout: 15000
-            }
-        );
+    constructor(instance: AxiosInstance) {
+        this.instance = instance
         this.instance.interceptors.request.use(config => {
-            try {
-                let cookies = fs.readFileSync(path.resolve(process.cwd(), `${appleId}_cookie.txt`)).toString()
-                if (cookies) {
-                    config.jar = CookieJar.fromJSON(JSON.parse(cookies))
-                }
-            } catch (error) {
-                
-            }
             if (config.jar) {
                 if (!config.headers) { config.headers = {} };
                 config.headers['cookie'] = config.jar.getCookieStringSync(config.url!);
@@ -49,6 +26,8 @@ export class Base {
             return config;
         }, error => Promise.reject(error));
         
+        // @ts-ignore：https://github.com/axios/axios/issues/1663 请求拦截器的顺序异常
+        this.instance.interceptors.request.handlers.reverse();
         this.instance.interceptors.response.use(response => {
             const config = response.config;
             const cookies = response.headers['set-cookie'] as [string];
@@ -56,12 +35,11 @@ export class Base {
                 cookies.forEach(cookie => {
                     config.jar!.setCookieSync(cookie, response.config.url!, { ignoreError: true });
                 });
-                // 序列化
-                fs.writeFileSync(path.resolve(process.cwd(), `${appleId}_cookie.txt`), JSON.stringify(config.jar!.toJSON()))
             }
             return response;
         }, error => Promise.reject(error));
-        this.appleId = appleId
+        // @ts-ignore
+        this.instance.interceptors.response.handlers.reverse();
         this.cookieJar = new CookieJar();
     }
 

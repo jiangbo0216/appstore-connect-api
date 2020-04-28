@@ -1,5 +1,5 @@
 import { Base, CommonResponse } from './base';
-import { AxiosResponse, AxiosError } from 'axios';
+import axios, { AxiosResponse, AxiosError, AxiosInstance } from 'axios';
 
 interface AuthServiceKeyObject {
     authServiceUrl: string,
@@ -120,10 +120,12 @@ export class Client extends Base {
     private userDetail?: AppStoreUserDetail;
     private headers: any = {};
     private password: string
+    private appleId: string
 
-    constructor(appleId: string, password: string) {
-        super(appleId)
+    constructor(appleId: string, password: string, axiosInstance = axios.create()) {
+        super(axiosInstance)
         this.password = password
+        this.appleId = appleId
     }
 
 
