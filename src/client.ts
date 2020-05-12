@@ -24,6 +24,20 @@ export interface Session {
     user: AppStoreUser,
     userProfile: [any]
 }
+
+export interface Phone {
+    numberWithDialCode: string,
+    obfuscatedNumber: string,
+    pushMode: string,
+    id: number
+}
+
+/**
+ * phones data format
+ */
+export interface Phones {
+    trustedPhoneNumbers: [Phone],
+}
 /**
  * AppStore Connect Provider
  */
@@ -107,6 +121,8 @@ export class Client extends Base {
     private authRequestUrl = 'https://idmsa.apple.com/appleauth/auth';
     private wdigetKeyUrl = 'https://appstoreconnect.apple.com/olympus/v1/app/config?hostname=itunesconnect.apple.com';
     private securityCodeUrl = 'https://idmsa.apple.com/appleauth/auth/verify/phone/securitycode'
+    private phonesUrl = 'https://idmsa.apple.com/appleauth/auth/verify/phone'
+
     // api end point
     apiEndPoint = 'https://appstoreconnect.apple.com'
 
@@ -143,7 +159,7 @@ export class Client extends Base {
      * @param appleId Apple ID(email format)
      * @param password Apple ID Password (no two-step verification)
      */
-    async signin(): Promise<string> {
+    async signin(): Promise<string|[Phone]> {
         
         const widgetKey = await this.widgetKey();
         return await this.post(this.signinUrl,
@@ -152,20 +168,26 @@ export class Client extends Base {
             .then(res => {
                 return Promise.resolve('ok') as Promise<string>
             })
-            .catch((e: AxiosError) => {
+            .catch(async (e: AxiosError) => {
                 this.updateRequestHeaders(e)
                 if (e.response?.data.authType === 'hsa2') {
-                    this.authRequest()
-                    // return Promise.resolve('code') as Promise<string>
-                    return Promise.resolve<string>('code')
+                    const phones = await this.authRequest()
+                    return phones.trustedPhoneNumbers
                 }
-                return ''
+                throw new Error('not surpport')
             });
     }
 
     async authRequest () {
-        this.get(this.authRequestUrl, this.headers)
+        const response = await this.get(this.authRequestUrl, this.headers) as AxiosResponse<Phones>;
+        return response.data
     }
+
+    async sendSMS (id: string) {
+        const response = await this.put(this.phonesUrl, {"phoneNumber":{id},"mode":"sms"}, this.headers)
+        return response.data
+    }
+
     /**
      * get session data
      */

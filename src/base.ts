@@ -76,6 +76,13 @@ export class Base {
             headers
         });
     }
+    put(url: string, data?: any, headers?: any) {
+        return this.instance.put(url, data, {
+            jar: this.cookieJar,
+            withCredentials: true,
+            headers
+        });
+    }
 }
 
 export interface CommonResponse<T> {

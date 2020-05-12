@@ -18,6 +18,7 @@ class Client extends base_1.Base {
         this.authRequestUrl = 'https://idmsa.apple.com/appleauth/auth';
         this.wdigetKeyUrl = 'https://appstoreconnect.apple.com/olympus/v1/app/config?hostname=itunesconnect.apple.com';
         this.securityCodeUrl = 'https://idmsa.apple.com/appleauth/auth/verify/phone/securitycode';
+        this.phonesUrl = 'https://idmsa.apple.com/appleauth/auth/verify/phone';
         // api end point
         this.apiEndPoint = 'https://appstoreconnect.apple.com';
         this.trustUrl = 'https://idmsa.apple.com/appleauth/auth/2sv/trust';
@@ -48,21 +49,27 @@ class Client extends base_1.Base {
                 .then(res => {
                 return Promise.resolve('ok');
             })
-                .catch((e) => {
+                .catch((e) => __awaiter(this, void 0, void 0, function* () {
                 var _a;
                 this.updateRequestHeaders(e);
                 if (((_a = e.response) === null || _a === void 0 ? void 0 : _a.data.authType) === 'hsa2') {
-                    this.authRequest();
-                    // return Promise.resolve('code') as Promise<string>
-                    return Promise.resolve('code');
+                    const phones = yield this.authRequest();
+                    return phones.trustedPhoneNumbers;
                 }
-                return '';
-            });
+                throw new Error('not surpport');
+            }));
         });
     }
     authRequest() {
         return __awaiter(this, void 0, void 0, function* () {
-            this.get(this.authRequestUrl, this.headers);
+            const response = yield this.get(this.authRequestUrl, this.headers);
+            return response.data;
+        });
+    }
+    sendSMS(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield this.put(this.phonesUrl, { "phoneNumber": { id }, "mode": "sms" }, this.headers);
+            return response.data;
         });
     }
     /**

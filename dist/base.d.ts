@@ -13,6 +13,7 @@ export declare class Base {
     post(url: string, data?: any, headers?: any): Promise<AxiosResponse<any>>;
     delete(url: string, headers?: any): Promise<AxiosResponse<any>>;
     patch(url: string, data?: any, headers?: any): Promise<AxiosResponse<any>>;
+    put(url: string, data?: any, headers?: any): Promise<AxiosResponse<any>>;
 }
 export interface CommonResponse<T> {
     data?: T;

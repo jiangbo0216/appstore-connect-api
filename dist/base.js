@@ -15,7 +15,7 @@ class Base {
             return config;
         }, error => Promise.reject(error));
         // @ts-ignore：https://github.com/axios/axios/issues/1663 请求拦截器的顺序异常
-        this.instance.interceptors.request.handlers.reverse(); //保证自定义的拦截器在前面触发 Ensure that the custom interceptor fires ahead
+        this.instance.interceptors.request.handlers.reverse();
         this.instance.interceptors.response.use(response => {
             const config = response.config;
             const cookies = response.headers['set-cookie'];
@@ -27,7 +27,7 @@ class Base {
             return response;
         }, error => Promise.reject(error));
         // @ts-ignore
-        this.instance.interceptors.response.handlers.reverse(); // 保证自定义的拦截器在后面触发 Ensure that the custom interceptor fires later
+        this.instance.interceptors.response.handlers.reverse();
         this.cookieJar = new tough_cookie_1.CookieJar();
     }
     // http methods
@@ -54,6 +54,13 @@ class Base {
     }
     patch(url, data, headers) {
         return this.instance.patch(url, data, {
+            jar: this.cookieJar,
+            withCredentials: true,
+            headers
+        });
+    }
+    put(url, data, headers) {
+        return this.instance.put(url, data, {
             jar: this.cookieJar,
             withCredentials: true,
             headers

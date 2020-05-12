@@ -18,6 +18,18 @@ export interface Session {
     user: AppStoreUser;
     userProfile: [any];
 }
+export interface Phone {
+    numberWithDialCode: string;
+    obfuscatedNumber: string;
+    pushMode: string;
+    id: number;
+}
+/**
+ * phones data format
+ */
+export interface Phones {
+    trustedPhoneNumbers: [Phone];
+}
 /**
  * AppStore Connect Provider
  */
@@ -94,6 +106,7 @@ export declare class Client extends Base {
     private authRequestUrl;
     private wdigetKeyUrl;
     private securityCodeUrl;
+    private phonesUrl;
     apiEndPoint: string;
     trustUrl: string;
     private authServiceWidgetKey?;
@@ -111,8 +124,9 @@ export declare class Client extends Base {
      * @param appleId Apple ID(email format)
      * @param password Apple ID Password (no two-step verification)
      */
-    signin(): Promise<string>;
-    authRequest(): Promise<void>;
+    signin(): Promise<string | [Phone]>;
+    authRequest(): Promise<Phones>;
+    sendSMS(id: string): Promise<any>;
     /**
      * get session data
      */
